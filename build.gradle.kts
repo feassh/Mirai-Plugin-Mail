@@ -6,7 +6,7 @@ plugins {
     id("net.mamoe.mirai-console") version "2.0-M2"
 }
 
-group = "ceneax.pther.miraipluginmail"
+group = "ceneax.other.miraipluginmail"
 version = "0.0.1"
 
 repositories {

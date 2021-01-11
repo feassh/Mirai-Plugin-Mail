@@ -1,6 +1,6 @@
 package org.example.mirai.plugin
 
-import ceneax.pther.miraipluginmail.PluginMain
+import ceneax.other.miraipluginmail.PluginMain
 import net.mamoe.mirai.alsoLogin
 import net.mamoe.mirai.console.MiraiConsole
 import net.mamoe.mirai.console.plugin.PluginManager.INSTANCE.enable
@@ -13,7 +13,7 @@ suspend fun main() {
     PluginMain.load()
     PluginMain.enable()
 
-    val bot = MiraiConsole.addBot(123456, "") {
+    val bot = MiraiConsole.addBot(1007632546, "Fuckyou012.") {
         fileBasedDeviceInfo()
     }.alsoLogin()
 
