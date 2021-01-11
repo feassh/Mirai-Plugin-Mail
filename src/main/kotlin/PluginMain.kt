@@ -1,6 +1,10 @@
 package ceneax.other.miraipluginmail
 
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.console.MiraiConsole
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregisterAll
 import net.mamoe.mirai.console.command.CommandSender.Companion.toCommandSender
 import net.mamoe.mirai.console.extension.PluginComponentStorage
@@ -10,12 +14,14 @@ import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.utils.error
 import net.mamoe.mirai.utils.info
+import net.mamoe.mirai.utils.warning
 import org.subethamail.smtp.helper.SimpleMessageListener
 import org.subethamail.smtp.helper.SimpleMessageListenerAdapter
 import org.subethamail.smtp.server.SMTPServer
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.*
 
 object PluginMain : KotlinPlugin(JvmPluginDescription(
         id = "ceneax.other.miraipluginmail",
@@ -50,17 +56,35 @@ object PluginMain : KotlinPlugin(JvmPluginDescription(
 
             override fun deliver(from: String?, recipient: String?, data: InputStream?) {
                 // 输入流转字符串文本
-                val content = BufferedReader(InputStreamReader(data)).useLines { lines ->
+                val contentRaw = BufferedReader(InputStreamReader(data)).useLines { lines ->
                     val sb = StringBuilder()
                     lines.forEach { sb.append(it) }
                     sb.toString()
                 }
 
-                logger.info { "邮件内容: $content" }
+                logger.info { "邮件原始内容: $contentRaw" }
+
+                // 发送给QQ
+                val contents = contentRaw.split("Content-Transfer-Encoding: base64")
+                if (contents.size == 2) {
+                    logger.info { "邮件解析成功！" }
+
+                    val content = String(Base64.getDecoder().decode(contents[1]))
+                    launch {
+                        sendMessage(content)
+
+                        logger.info { "邮件转发成功！" }
+                    }
+                } else {
+                    logger.warning { "邮件解析失败！" }
+                }
             }
         }))
-        mailServer.port = 2500
         mailServer.start()
+    }
+
+    private suspend fun sendMessage(msg: String) {
+        Bot.instances.firstOrNull()?.getFriend(1379719591)?.sendMessage(msg)
     }
 
     override fun onDisable() {
