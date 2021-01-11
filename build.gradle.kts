@@ -16,3 +16,7 @@ repositories {
     jcenter()
     maven("https://dl.bintray.com/kotlin/kotlin-eap")
 }
+
+dependencies {
+    implementation("org.subethamail", "subethasmtp", "3.1.7")
+}
