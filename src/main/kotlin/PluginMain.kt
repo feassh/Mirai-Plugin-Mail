@@ -1,4 +1,4 @@
-package org.example.mirai.plugin
+package ceneax.pther.miraipluginmail
 
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
@@ -6,8 +6,8 @@ import net.mamoe.mirai.utils.info
 
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
-        id = "org.example.mirai-plugin",
-        version = "0.1.0"
+        id = "ceneax.pther.miraipluginmail",
+        version = "0.0.1"
     )
 ) {
     override fun onEnable() {

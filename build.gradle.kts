@@ -6,10 +6,11 @@ plugins {
     id("net.mamoe.mirai-console") version "2.0-M2"
 }
 
-group = "org.example"
-version = "0.1.0"
+group = "ceneax.pther.miraipluginmail"
+version = "0.0.1"
 
 repositories {
+    maven("https://maven.aliyun.com/repository/public/")
     mavenLocal()
     mavenCentral()
     jcenter()

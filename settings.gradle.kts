@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        maven("https://maven.aliyun.com/repository/public/")
         mavenLocal()
         gradlePluginPortal()
         mavenCentral()
@@ -7,4 +8,4 @@ pluginManagement {
         maven("https://dl.bintray.com/kotlin/kotlin-eap")
     }
 }
-rootProject.name = "mirai-console-plugin-template"
+rootProject.name = "MiraiPluginMail"
