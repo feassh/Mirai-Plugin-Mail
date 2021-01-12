@@ -1,34 +1,37 @@
 package ceneax.other.miraipluginmail
 
+import ceneax.other.miraipluginmail.util.MailUtil
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.Bot
-import net.mamoe.mirai.BotFactory
-import net.mamoe.mirai.console.MiraiConsole
-import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregisterAll
-import net.mamoe.mirai.console.command.CommandSender.Companion.toCommandSender
 import net.mamoe.mirai.console.extension.PluginComponentStorage
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.globalEventChannel
-import net.mamoe.mirai.utils.error
 import net.mamoe.mirai.utils.info
 import net.mamoe.mirai.utils.warning
 import org.subethamail.smtp.helper.SimpleMessageListener
 import org.subethamail.smtp.helper.SimpleMessageListenerAdapter
 import org.subethamail.smtp.server.SMTPServer
+import org.subethamail.wiser.Wiser
+import org.subethamail.wiser.WiserMessage
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
 import java.util.*
+import javax.mail.Session
+import javax.mail.internet.MimeMessage
+import javax.mail.internet.MimeMultipart
 
 object PluginMain : KotlinPlugin(JvmPluginDescription(
         id = "ceneax.other.miraipluginmail",
         version = "0.0.1"
     )) {
 
-    private lateinit var mailServer: SMTPServer
+    private lateinit var mailServer: Wiser
+    private val mSdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     override fun PluginComponentStorage.onLoad() {
         logger.info { "'邮件服务器'插件加载成功！" }
@@ -48,38 +51,36 @@ object PluginMain : KotlinPlugin(JvmPluginDescription(
         }
 
         // 启动mail smtp服务
-        mailServer = SMTPServer(SimpleMessageListenerAdapter(object : SimpleMessageListener {
+        mailServer = object : Wiser() {
             override fun accept(from: String?, recipient: String?): Boolean {
                 logger.info { "收到新邮件，发信人: $from, 收信人: $recipient" }
-                return true
+                return super.accept(from, recipient)
             }
 
             override fun deliver(from: String?, recipient: String?, data: InputStream?) {
-                // 输入流转字符串文本
-                val contentRaw = BufferedReader(InputStreamReader(data)).useLines { lines ->
-                    val sb = StringBuilder()
-                    lines.forEach { sb.append(it) }
-                    sb.toString()
+                super.deliver(from, recipient, data)
+
+                val result = mailServer.messages.first().mimeMessage
+                val sb = StringBuilder()
+                MailUtil.getTextFromMessage(result).split("\n").forEach {
+                    if (it.replace(" ", "").isNotEmpty()) {
+                        sb.append("\n" + it.trim())
+                    }
                 }
 
-                logger.info { "邮件原始内容: $contentRaw" }
+                launch {
+                    sendMessage(
+                        "收到一封邮件！\n" +
+                            "时间：${mSdf.format(result.sentDate)}\n" +
+                            "来自：${result.from.first()}\n" +
+                            "主题：${result.subject}\n" +
+                            "内容：$sb"
+                    )
 
-                // 发送给QQ
-                val contents = contentRaw.split("Content-Transfer-Encoding: base64")
-                if (contents.size == 2) {
-                    logger.info { "邮件解析成功！" }
-
-                    val content = String(Base64.getDecoder().decode(contents[1]))
-                    launch {
-                        sendMessage(content)
-
-                        logger.info { "邮件转发成功！" }
-                    }
-                } else {
-                    logger.warning { "邮件解析失败！" }
+                    mailServer.messages.clear()
                 }
             }
-        }))
+        }
         mailServer.start()
     }
 

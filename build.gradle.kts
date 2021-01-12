@@ -19,4 +19,5 @@ repositories {
 
 dependencies {
     implementation("org.subethamail", "subethasmtp", "3.1.7")
+    implementation("org.jsoup", "jsoup", "1.13.1")
 }
